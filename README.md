@@ -2,7 +2,8 @@
 
 In your terminal
 
-    node imgbase style.css > style.embd.css
+    npm install -g imgbase
+    imgbase style.css > style.embd.css
     
 In your HTML
 
