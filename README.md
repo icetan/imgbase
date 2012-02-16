@@ -2,8 +2,8 @@
 
 In your terminal
 
-    cat style.css | node imgbase > style.embd.css
-
+    node imgbase style.css > style.embd.css
+    
 In your HTML
 
 ```html
