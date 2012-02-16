@@ -57,15 +57,3 @@ function imgbase (sIn, sOut, opt) {
 }
 
 module.exports = imgbase;
-
-if (!module.parent) {
-  var file = process.argv[2]
-    , opt = { base: process.cwd() };
-  if (file !== undefined) {
-    var path = require('path');
-    opt.rel = path.dirname(file);
-    imgbase(fs.createReadStream(file), process.stdout, opt);
-  } else {
-    imgbase(process.stdin, process.stdout, opt);
-  }
-}
