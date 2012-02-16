@@ -2,17 +2,20 @@ var fs = require('fs')
   , http = require('http')
 
 function getBase64 (url, fn) {
+  console.error('> ' + url);
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
   if (m !== null) {
     http.get({host:m[2], port:parseInt(m[3]||80), path:m[4]}, function (res) {
       var buf = '';
-      res.on('data', function (data) { buf += data; });
+      res.on('data', function (data) {
+        buf += data;
+      });
       res.on('end', function () {
         fn(new Buffer(buf).toString('base64'));
       });
     });
   } else {
-    fs.readFile(url, function (err, data) {
+    fs.readFile(url, function (data) {
       fn(data.toString('base64'));
     });
   }
@@ -21,28 +24,19 @@ function getBase64 (url, fn) {
 function imgbase (sIn, sOut) {
   var buf = '';
   sIn.resume();
+  sIn.setEncoding('utf-8');
   sIn.on('data', function (data) {
-    var re = /url\(["']?([^\)]*\.(png|gif|jpeg|jpg))["']?\)/g;
     buf += data;
-    var parse = function (start) {
-      var m = re.exec(buf);
-      if (m !== null) {
-        sIn.pause();
-        var index = m.index
-          , len = m[0].length
-          , url = m[1]
-          , type = m[2];
-        getBase64(url, function (img) {
-          sOut.write(buf.slice(start, index)
-            +'url(data:image/'+type+';base64,'+img+')');
-          parse(index + len);
-        });
-      } else {
-        buf = buf.slice(start);
+    var m = /url\(["']?([^\)]*\.(png|gif|jpeg|jpg))["']?\)/g.exec(buf);
+    if (m !== null) {
+      sIn.pause();
+      getBase64(m[1], function (img) {
+        sOut.write(buf.slice(0, m.index)
+          +'url(data:image/'+m[2]+';base64,'+img+')');
+        buf = buf.slice(m.index + m[0].length);
         sIn.resume();
-      }
+      });
     }
-    parse(0);
   });
   sIn.on('end', function () {
     sOut.write(buf);
