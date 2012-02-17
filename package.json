@@ -7,7 +7,7 @@
   , "keywords": ["css", "image", "embedding", "base64"]
   , "repository": {
       "type": "git"
-    , "url": "https://github.com/icetan/icetan.git"
+    , "url": "https://github.com/icetan/imgbase.git"
   }
   , "main": "./imgbase.js"
   , "bin": {
