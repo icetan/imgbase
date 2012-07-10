@@ -1,7 +1,7 @@
 {
     "name": "imgbase"
   , "description": "Automatically embedded images as base64 strings in CSS-files."
-  , "version": "0.0.1"
+  , "version": "0.0.2"
   , "homepage": "https://github.com/icetan/imgbase"
   , "author": "Christopher Fredén <c.freden@gmail.com>"
   , "keywords": ["css", "image", "embedding", "base64"]
