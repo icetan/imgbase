@@ -1,6 +1,5 @@
 var fs = require('fs')
-  , http = require('http')
-  , Stream = require('stream').Stream;
+  , http = require('http');
 
 function getBase64 (url, fn, opt) {
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
