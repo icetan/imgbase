@@ -1,9 +1,10 @@
 var fs = require('fs')
-  , http = require('http');
+  , http = require('http')
+  , Stream = require('stream').Stream;
 
 function getBase64 (url, fn, opt) {
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
-  if (opt === undefined) opt = {};
+  if (!opt) opt = {};
   if (m !== null) {
     http.get({host:m[2], port:parseInt(m[3]||80), path:m[4]}, function (res) {
       var buf = ''
@@ -25,7 +26,7 @@ function getBase64 (url, fn, opt) {
   }
 }
 
-function imgbase (sIn, sOut, opt) {
+function compileStream (sIn, sOut, opt) {
   var buf = '';
   sIn.resume();
   sIn.on('data', function (data) {
@@ -54,6 +55,36 @@ function imgbase (sIn, sOut, opt) {
   sIn.on('end', function () {
     sOut.write(buf);
   });
+}
+
+function compileString (str, callback, opt) {
+    var result = '';
+    var re = /url\(["']?\s*([^\)]*\.(png|gif|jpeg|jpg))\s*["']?\)/g;
+    var parse = function (start) {
+      var m = re.exec(str);
+      if (m !== null) {
+        var index = m.index
+          , len = m[0].length
+          , url = m[1]
+          , type = m[2];
+        getBase64(url, function (img) {
+          result += (str.slice(start, index)
+            +'url(data:image/'+type+';base64,'+img+')');
+          parse(index + len);
+        }, opt);
+      } else {
+        callback(result + str.slice(start));
+      }
+    }
+    parse(0);
+}
+
+function imgbase (input, output, opt) {
+    if (typeof input === 'string') {
+      compileString(input, output, opt);
+    } else {
+      compileStream(input, output, opt);
+    }
 }
 
 module.exports = imgbase;
