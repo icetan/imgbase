@@ -1,5 +1,19 @@
 var fs = require('fs')
-  , http = require('http');
+  , http = require('http')
+  , mimes = {
+      png:  'image/png'
+    , gif:  'image/gif'
+    , jepg: 'imgae/jpeg'
+    , jpg:  'image/jpg'
+    , ttf:  'font/ttf'
+  }
+  , types = []
+  , reString
+  ;
+for (var i in mimes) {
+  types.push(i);
+}
+reString = 'url\\(["\']?\\s*([^\\)]*\\.('+types.join('|')+'))\\s*["\']?\\)';
 
 function getBase64 (url, fn, opt) {
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
@@ -29,7 +43,7 @@ function compileStream (sIn, sOut, opt) {
   var buf = '';
   sIn.resume();
   sIn.on('data', function (data) {
-    var re = /url\(["']?\s*([^\)]*\.(png|gif|jpeg|jpg))\s*["']?\)/g;
+    var re = new RegExp(reString, 'g');
     buf += data;
     var parse = function (start) {
       var m = re.exec(buf);
@@ -41,7 +55,7 @@ function compileStream (sIn, sOut, opt) {
           , type = m[2];
         getBase64(url, function (img) {
           sOut.write(buf.slice(start, index)
-            +'url(data:image/'+type+';base64,'+img+')');
+            +'url(data:'+mimes[type]+';base64,'+img+')');
           parse(index + len);
         }, opt);
       } else {
@@ -58,7 +72,7 @@ function compileStream (sIn, sOut, opt) {
 
 function compileString (str, callback, opt) {
     var result = '';
-    var re = /url\(["']?\s*([^\)]*\.(png|gif|jpeg|jpg))\s*["']?\)/g;
+    var re = new RegExp(reString, 'g');
     var parse = function (start) {
       var m = re.exec(str);
       if (m !== null) {
@@ -68,7 +82,7 @@ function compileString (str, callback, opt) {
           , type = m[2];
         getBase64(url, function (img) {
           result += (str.slice(start, index)
-            +'url(data:image/'+type+';base64,'+img+')');
+            +'url(data:'+mimes[type]+';base64,'+img+')');
           parse(index + len);
         }, opt);
       } else {
