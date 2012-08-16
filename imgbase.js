@@ -1,9 +1,23 @@
 var fs = require('fs')
-  , http = require('http');
+  , http = require('http')
+  , mimes = {
+      png:  'image/png'
+    , gif:  'image/gif'
+    , jepg: 'imgae/jpeg'
+    , jpg:  'image/jpg'
+    , ttf:  'font/ttf'
+  }
+  , types = []
+  , reString
+  ;
+for (var i in mimes) {
+  types.push(i);
+}
+reString = 'url\\(["\']?\\s*([^\\)]*\\.('+types.join('|')+'))\\s*["\']?\\)';
 
 function getBase64 (url, fn, opt) {
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
-  if (opt === undefined) opt = {};
+  if (!opt) opt = {};
   if (m !== null) {
     http.get({host:m[2], port:parseInt(m[3]||80), path:m[4]}, function (res) {
       var buf = ''
@@ -25,11 +39,11 @@ function getBase64 (url, fn, opt) {
   }
 }
 
-function imgbase (sIn, sOut, opt) {
+function compileStream (sIn, sOut, opt) {
   var buf = '';
   sIn.resume();
   sIn.on('data', function (data) {
-    var re = /url\(["']?\s*([^\)]*\.(png|gif|jpeg|jpg))\s*["']?\)/g;
+    var re = new RegExp(reString, 'g');
     buf += data;
     var parse = function (start) {
       var m = re.exec(buf);
@@ -41,7 +55,7 @@ function imgbase (sIn, sOut, opt) {
           , type = m[2];
         getBase64(url, function (img) {
           sOut.write(buf.slice(start, index)
-            +'url(data:image/'+type+';base64,'+img+')');
+            +'url(data:'+mimes[type]+';base64,'+img+')');
           parse(index + len);
         }, opt);
       } else {
@@ -54,6 +68,36 @@ function imgbase (sIn, sOut, opt) {
   sIn.on('end', function () {
     sOut.write(buf);
   });
+}
+
+function compileString (str, callback, opt) {
+    var result = '';
+    var re = new RegExp(reString, 'g');
+    var parse = function (start) {
+      var m = re.exec(str);
+      if (m !== null) {
+        var index = m.index
+          , len = m[0].length
+          , url = m[1]
+          , type = m[2];
+        getBase64(url, function (img) {
+          result += (str.slice(start, index)
+            +'url(data:'+mimes[type]+';base64,'+img+')');
+          parse(index + len);
+        }, opt);
+      } else {
+        callback(result + str.slice(start));
+      }
+    }
+    parse(0);
+}
+
+function imgbase (input, output, opt) {
+    if (typeof input === 'string') {
+      compileString(input, output, opt);
+    } else {
+      compileStream(input, output, opt);
+    }
 }
 
 module.exports = imgbase;
