@@ -6,6 +6,7 @@ var fs = require('fs')
     , jepg: 'imgae/jpeg'
     , jpg:  'image/jpg'
     , ttf:  'font/ttf'
+    , svg:  'image/svg+xml'
   }
   , types = []
   , reString
