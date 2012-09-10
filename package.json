@@ -4,6 +4,7 @@
   , "version": "0.1.2"
   , "homepage": "https://github.com/icetan/imgbase"
   , "author": "Christopher Fredén <c.freden@gmail.com>"
+  , "contributors": ["Manfred Touron"]
   , "keywords": ["css", "image", "embedding", "base64"]
   , "repository": {
       "type": "git"
