@@ -3,8 +3,8 @@ var fs = require('fs')
   , mimes = {
       png:  'image/png'
     , gif:  'image/gif'
-    , jepg: 'imgae/jpeg'
-    , jpg:  'image/jpg'
+    , jpeg: 'image/jpeg'
+    , jpg:  'image/jpeg'
     , ttf:  'font/ttf'
     , svg:  'image/svg+xml'
   }
