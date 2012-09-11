@@ -14,7 +14,7 @@ var fs = require('fs')
 for (var i in mimes) {
   types.push(i);
 }
-reString = 'url\\(["\']?\\s*([^\\)]*\\.('+types.join('|')+'))\\s*["\']?\\)';
+reString = 'url\\(["\']?\\s*([^\\)]*\\.('+types.join('|')+'))\\??#?\\w*\\s*["\']?\\)';
 
 function getBase64 (url, fn, opt) {
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
