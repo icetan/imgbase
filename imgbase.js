@@ -1,20 +1,21 @@
 var fs = require('fs')
   , http = require('http')
-  , mimes = {
-      png:  'image/png'
-    , gif:  'image/gif'
-    , jpeg: 'image/jpeg'
-    , jpg:  'image/jpeg'
-    , ttf:  'font/ttf'
-    , svg:  'image/svg+xml'
-  }
-  , types = []
-  , reString
+  , imageinfo = require('imageinfo')
+  , reString = 'url\\(\\s*([\'"]|\\b)(.+?)\\1\\s*\\)'
   ;
-for (var i in mimes) {
-  types.push(i);
-}
-reString = 'url\\(["\']?\\s*([^\\)]*\\.('+types.join('|')+'))\\??#?\\w*\\s*["\']?\\)';
+//  , mimes = {
+//      png:  'image/png'
+//    , gif:  'image/gif'
+//    , jpeg: 'image/jpeg'
+//    , jpg:  'image/jpeg'
+//    , ttf:  'font/ttf'
+//    , svg:  'image/svg+xml'
+//  }
+//  , types = []
+//  ;
+//for (var i in mimes) {
+//  types.push(i);
+//}
 
 function getBase64 (url, fn, opt) {
   var m = /^(https?):\/\/([^:\/]+)(?::(\d+))?([^:]*)$/.exec(url);
@@ -25,7 +26,8 @@ function getBase64 (url, fn, opt) {
       res.setEncoding('binary');
       res.on('data', function (data) { buf += data; });
       res.on('end', function () {
-        fn(new Buffer(buf, 'binary').toString('base64'));
+        // TODO: Get MIME type from headers
+        fn(new Buffer(buf, 'binary').toString('base64'), imageinfo(buf));
       });
     });
   } else {
@@ -34,8 +36,9 @@ function getBase64 (url, fn, opt) {
     } else {
       url = (opt.rel ? opt.rel+'/' : '')+url;
     }
+    // TODO: Fallback to file extension for MIME type
     fs.readFile(url, function (err, data) {
-      fn(data.toString('base64'));
+      fn(data.toString('base64'), imageinfo(data));
     });
   }
 }
@@ -52,11 +55,10 @@ function compileStream (sIn, sOut, opt) {
         sIn.pause();
         var index = m.index
           , len = m[0].length
-          , url = m[1]
-          , type = m[2];
-        getBase64(url, function (img) {
+          , url = m[2];
+        getBase64(url, function (img, info) {
           sOut.write(buf.slice(start, index)
-            +'url(data:'+mimes[type]+';base64,'+img+')');
+            +'url(data:'+info.mimeType+';base64,'+img+')');
           parse(index + len);
         }, opt);
       } else {
@@ -79,11 +81,10 @@ function compileString (str, callback, opt) {
       if (m !== null) {
         var index = m.index
           , len = m[0].length
-          , url = m[1]
-          , type = m[2];
-        getBase64(url, function (img) {
+          , url = m[2];
+        getBase64(url, function (img, info) {
           result += (str.slice(start, index)
-            +'url(data:'+mimes[type]+';base64,'+img+')');
+            +'url(data:'+info.mimeType+';base64,'+img+')');
           parse(index + len);
         }, opt);
       } else {
